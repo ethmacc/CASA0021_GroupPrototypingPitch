@@ -1,66 +1,40 @@
 #include <Arduino.h>
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
-#include <Wire.h>
+#include "IMU.hpp"
 
-Adafruit_MPU6050 mpu6050;
+IMU imu;
 
 void setup() {
-  Serial.begin(9600);
-  // while (!Serial)
-  //   delay(10); // will pause Zero, Leonardo, etc until serial console opens
+    Serial.begin(9600);
+    while (!Serial)
+        delay(10); // will pause Zero, Leonardo, etc until serial console opens
 
-  Serial.println("Starting...");
+    Serial.println("Starting...");
 
-  while(1);
+    /*--Start I2C interface--*/
+    Wire.begin();
 
-  // // Try to initialize!
-  // if (!mpu6050.begin()) {
-  //   Serial.println("Failed to find MPU6050 chip");
-  //   while (1) {
-  //     delay(10);
-  //   }
-  // }
-  // Serial.println("MPU6050 Found!");
-
-  // //setupt motion detection
-  // mpu6050.setHighPassFilter(MPU6050_HIGHPASS_0_63_HZ);
-  // mpu6050.setMotionDetectionThreshold(1);
-  // mpu6050.setMotionDetectionDuration(20);
-  // mpu6050.setInterruptPinLatch(true);	// Keep it latched.  Will turn off when reinitialized.
-  // mpu6050.setInterruptPinPolarity(true);
-  // mpu6050.setMotionInterrupt(true);
-
-  // Serial.println("");
-  // delay(100);
+    /*--Initialize IMU--*/
+    if(imu.initialize()){
+        Serial.println("IMU initialized successfully");
+    }
+    else{
+        Serial.println("IMU initialization failed");
+    }
+  
+    /*Configure board LED pin for output*/ 
+    pinMode(LED_BUILTIN, OUTPUT);
+    delay(1000);
 }
 
 void loop() {
-  if(mpu6050.getMotionInterruptStatus()) {
-    /* Get new sensor events with the readings */
-    sensors_event_t a, g, temp;
-    mpu6050.getEvent(&a, &g, &temp);
 
-    /* Print out the values */
-    Serial.print("AccelX:");
-    Serial.print(a.acceleration.x);
-    Serial.print(",");
-    Serial.print("AccelY:");
-    Serial.print(a.acceleration.y);
-    Serial.print(",");
-    Serial.print("AccelZ:");
-    Serial.print(a.acceleration.z);
-    Serial.print(", ");
-    Serial.print("GyroX:");
-    Serial.print(g.gyro.x);
-    Serial.print(",");
-    Serial.print("GyroY:");
-    Serial.print(g.gyro.y);
-    Serial.print(",");
-    Serial.print("GyroZ:");
-    Serial.print(g.gyro.z);
-    Serial.println("");
+  // Check IMU for movement
+  if(imu.update()){
+    digitalWrite(LED_BUILTIN, LOW);
   }
-
-  delay(10);
+  else{
+    //Serial.println("Motion detected");
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+  delay(500);
 }
