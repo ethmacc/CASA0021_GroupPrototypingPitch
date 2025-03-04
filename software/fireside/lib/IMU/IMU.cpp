@@ -8,7 +8,7 @@
 
 #include "IMU.hpp"
 
-#define PERCENT_DIFF 0.10
+#define PERCENT_DIFF 0.25
 
 bool IMU::initialize(void)
 {
@@ -31,128 +31,49 @@ bool IMU::initialize(void)
 bool IMU::update(void)
 {
     static int iterator = 0;
-    static float axArr[ROLLING_AVG_SIZE] = {0}, ayArr[ROLLING_AVG_SIZE] = {0}, azArr[ROLLING_AVG_SIZE] = {0};
-    static float axSum = 0, aySum = 0, azSum = 0;
+    static int16_t axArr[ROLLING_AVG_SIZE] = {0}, ayArr[ROLLING_AVG_SIZE] = {0}, azArr[ROLLING_AVG_SIZE] = {0};
+    static int32_t axSum = 0, aySum = 0, azSum = 0;
 
     int16_t ax, ay, az;
     int16_t gx, gy, gz; // Dummies, not really needed
     /* Read raw accel/gyro data from the module. Other methods commented*/
     this->mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    //mpu.getAcceleration(&ax, &ay, &az);
-    //mpu.getRotation(&gx, &gy, &gz);
 
-    // Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));
-    // Serial.write((uint8_t)(ay >> 8)); Serial.write((uint8_t)(ay & 0xFF));
-    // Serial.write((uint8_t)(az >> 8)); Serial.write((uint8_t)(az & 0xFF));
-    // Serial.write((uint8_t)(gx >> 8)); Serial.write((uint8_t)(gx & 0xFF));
-    // Serial.write((uint8_t)(gy >> 8)); Serial.write((uint8_t)(gy & 0xFF));
-    // Serial.write((uint8_t)(gz >> 8)); Serial.write((uint8_t)(gz & 0xFF));
+    if(axArr[iterator] != 0){
+        int16_t axAvg = axSum / ROLLING_AVG_SIZE;
+        int16_t ayAvg = aySum / ROLLING_AVG_SIZE;
+        int16_t azAvg = azSum / ROLLING_AVG_SIZE;
 
-    // Check if reading and avg are different
-    float tempAvg = 0;
-    float tempPercent = 0;
-    float tempReading = 0;
-
-    for(uint8_t axis = X; axis <= Z; axis++){
-        switch(axis){
-            case X:
-                tempAvg = axSum / ROLLING_AVG_SIZE;
-                tempReading = ax;
-                Serial.print("X: ");
-                Serial.print(ax);
-                Serial.print(" ");
-                break;
-            case Y:
-                tempAvg = aySum / ROLLING_AVG_SIZE;
-                tempReading = ay;
-                Serial.print("Y: ");
-                Serial.print(ay);
-                Serial.print(" ");
-                break;
-            case Z:
-                tempAvg = azSum / ROLLING_AVG_SIZE;
-                tempReading = az;
-                Serial.print("Z: ");
-                Serial.print(az);
-                Serial.print(" ");
-                break;
+        if((ax > axAvg * (1 + PERCENT_DIFF)) || (ax < axAvg * (1 - PERCENT_DIFF))){
+            Serial.println("Movement Detected in X-axis");
         }
 
-        Serial.print("Avg: ");
-        Serial.println(tempAvg);
-        tempPercent = (PERCENT_DIFF * tempAvg);
-
-        // if( tempReading > (tempAvg * (1 + PERCENT_DIFF)) ){
-        //     Serial.println("Above the avg Threshold");
-        //     Serial.println("avg + percent < reading:");
-        //     Serial.print(tempAvg);
-        //     Serial.print(" + ");
-        //     Serial.print(tempPercent);
-        //     Serial.print(" = ");
-        //     Serial.print(tempAvg + tempPercent);
-        //     Serial.print(" > ");
-        //     Serial.println(tempReading);
-        // }
-
-        // if( tempReading < (tempAvg * (1 - PERCENT_DIFF)) ){
-        //     Serial.println("Below the avg Threshold");
-        //     Serial.println("avg - percent > reading:");
-        //     Serial.print(tempAvg);
-        //     Serial.print(" - ");
-        //     Serial.print(tempPercent);
-        //     Serial.print(" = ");
-        //     Serial.print(tempAvg - tempPercent);
-        //     Serial.print(" < ");
-        //     Serial.println(tempReading);
-        // }
-
-        if(( tempReading < (tempAvg * (1 + PERCENT_DIFF)) ) || ( tempReading > (tempAvg * (1 - PERCENT_DIFF)) )){
-            Serial.println("Motion detected!");
-            //return false;
+        if((ay < ayAvg * (1 + PERCENT_DIFF)) || (ay > ayAvg * (1 - PERCENT_DIFF))){
+            Serial.println("Movement Detected in Y-axis");
         }
 
-        // if( (tempAvg + tempPercent) < tempReading || (tempAvg - tempPercent) > tempReading){
-        //     if(axArr[iterator] != 0){
-        //         Serial.println("avg + percent < reading:");
-        //         Serial.print(tempAvg);
-        //         Serial.print(" + ");
-        //         Serial.print(tempPercent);
-        //         Serial.print(" = ");
-        //         Serial.print(tempAvg + tempPercent);
-        //         Serial.print(" < ");
-        //         Serial.println(tempReading);
+        if((az < azAvg * (1 + PERCENT_DIFF)) || (az > azAvg * (1 - PERCENT_DIFF))){
+            Serial.println("Movement Detected in Z-axis");
+        }
 
-        //         Serial.println("avg - percent > reading:");
-        //         Serial.print(tempAvg);
-        //         Serial.print(" - ");
-        //         Serial.print(tempPercent);
-        //         Serial.print(" = ");
-        //         Serial.print(tempAvg - tempPercent);
-        //         Serial.print(" > ");
-        //         Serial.println(tempReading);
-
-        //         Serial.println("Motion detected!");
-        //         //return false;
-        //     }
-        // }
     }
 
-    // Update the Sums
-    axSum = axSum - axArr[iterator] + ax;
-    aySum = aySum - ayArr[iterator] + ay;
-    azSum = azSum - azArr[iterator] + az;
-
+    // Remove oldest value
+    axSum -= axArr[iterator];
+    aySum -= ayArr[iterator];
+    azSum -= azArr[iterator];
+    // Add new value
     axArr[iterator] = ax;
     ayArr[iterator] = ay;
     azArr[iterator] = az;
+    // Update the sum
+    axSum += ax;
+    aySum += ay;
+    azSum += az;
 
-    // Check to reset the iterator
-    if(iterator == ROLLING_AVG_SIZE - 1){
-        iterator = 0;
-    }
-    else{
-        iterator++;
-    }
+    // Update the iterator
+    iterator = (iterator + 1) % ROLLING_AVG_SIZE;
+
     return true;
 }
 
