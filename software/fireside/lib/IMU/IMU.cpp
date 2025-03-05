@@ -36,6 +36,7 @@ bool IMU::update(void)
 
     int16_t ax, ay, az;
     int16_t gx, gy, gz; // Dummies, not really needed
+    
     /* Read raw accel/gyro data from the module. Other methods commented*/
     this->mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
@@ -44,16 +45,21 @@ bool IMU::update(void)
         int16_t ayAvg = aySum / ROLLING_AVG_SIZE;
         int16_t azAvg = azSum / ROLLING_AVG_SIZE;
 
+        // Usually a positive value is detected in the X-axis when the sensor is moved
         if((ax > axAvg * (1 + PERCENT_DIFF)) || (ax < axAvg * (1 - PERCENT_DIFF))){
             Serial.println("Movement Detected in X-axis");
+            return false;
         }
 
+        // Usually a negative value is detected in the Y and Z-axis when the sensor is moved
         if((ay < ayAvg * (1 + PERCENT_DIFF)) || (ay > ayAvg * (1 - PERCENT_DIFF))){
             Serial.println("Movement Detected in Y-axis");
+            return false;
         }
 
         if((az < azAvg * (1 + PERCENT_DIFF)) || (az > azAvg * (1 - PERCENT_DIFF))){
             Serial.println("Movement Detected in Z-axis");
+            return false;
         }
 
     }
@@ -62,10 +68,12 @@ bool IMU::update(void)
     axSum -= axArr[iterator];
     aySum -= ayArr[iterator];
     azSum -= azArr[iterator];
+
     // Add new value
     axArr[iterator] = ax;
     ayArr[iterator] = ay;
     azArr[iterator] = az;
+
     // Update the sum
     axSum += ax;
     aySum += ay;

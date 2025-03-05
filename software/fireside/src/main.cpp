@@ -33,7 +33,6 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
   }
   else{
-    //Serial.println("Motion detected");
     digitalWrite(LED_BUILTIN, HIGH);
   }
   delay(500);

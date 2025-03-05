@@ -15,12 +15,6 @@ class IMU{
 
     private:
 
-        typedef enum axisType{
-            X,
-            Y,
-            Z
-        }axis_t;
-
         /* MPU6050 default I2C address is 0x68*/
         MPU6050 mpu;
 
