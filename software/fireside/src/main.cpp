@@ -5,9 +5,10 @@
 #include "IMU.hpp"
 #include "macAddr.h"
 
-#define DEVICE_A
+#define DEVICE_B
 
-#define FIVE_MIN 1000
+#define FIVE_MIN 100000
+#define HEATING_COIL D8 // GPIO15
 
 #ifdef DEVICE_A
   IMU imu;
@@ -69,6 +70,7 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   Serial.println();
 
   digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(HEATING_COIL, HIGH);
   Serial.println("Our Buddy is Moving!");
   recvTime = millis();
 }
@@ -77,6 +79,10 @@ void setup() {
 
     /*Configure board LED pin for output*/ 
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(HEATING_COIL, OUTPUT);
+    digitalWrite(HEATING_COIL, LOW);  // Start Heating Coil off as low
+
+    // Blink to test power on: Something seems fishy on startup
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
@@ -143,7 +149,9 @@ void loop() {
 
   // Reset the LED after 5 minutes
   if(digitalRead(LED_BUILTIN) == HIGH){
+    Serial.println("Turning off LED...");
     if(millis() - recvTime > FIVE_MIN){
+      digitalWrite(HEATING_COIL, LOW);
       digitalWrite(LED_BUILTIN, LOW);
       Serial.println("It's been 5 min since our buddy moved...");
     }
