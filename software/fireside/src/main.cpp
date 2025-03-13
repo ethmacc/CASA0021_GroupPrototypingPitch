@@ -6,19 +6,27 @@
 #include "IMU.hpp"
 #include "macAddr.h"
 
-#define DEVICE_B
+// #define DEVICE_A 1
+#define DEVICE_B 1
 
+// GPIOs
+// #define LED_BUILTIN D0  // defined within Arduino.h
+// #define SCL D1
+// #define SDA D2
+#define HEATING_COIL D3
+#define NEOPIXEL D4
+
+// Time Constants
 #define ONE_SEC 1000
-#define FIVE_MIN 100000
-#define LED_BUILTIN D0
-#define HEATING_COIL D1
-#define NEOPIXEL D2
+#define FIVE_MIN 10000
+
+// NeoPixel Constants
 #define NUMPIXEL_COUNT 8
 #define R_HEX 255
 #define G_HEX 197
 #define B_HEX 143
 
-#ifdef defined DEVICE_A
+#ifdef DEVICE_A
   IMU imu;
 #endif
 
@@ -96,25 +104,32 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   Serial.println(newMsg.isMoving);
   Serial.println();
 
-  if(newMsg.isMoving){
-    if(amIMoving){
-      // Turn on the Heating Element
-      digitalWrite(HEATING_COIL, HIGH);
-      isHeating = true;
-      heat_timestamp = millis();
-    }
-    else{
-      // Turn on the Lighting Element
-      baseLight.fill(baseLight.Color(R_HEX, G_HEX, B_HEX), 0, NUMPIXEL_COUNT);
-      baseLight.show();
-    }
-  }
+  // Save Buddies State
+  hasBuddyMoved = newMsg.isMoving;
+
+  amIMoving = hasBuddyMoved;  // TODO: REMOVE THIS FOR THE FINAL IMPLEMENTATION
+  // THIS LINE IS SIMPLY TO TEST ON THE BREADBOARD, SINCE I ONLY HAVE 1 IMU
 }
 
 void setup() {
 
+      /*Configure board LED pin for output*/ 
+      pinMode(LED_BUILTIN, OUTPUT);
+  
+      // Blink to test power on: Something seems fishy on startup
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+
+  // Initialize Serial Monitor
+  Serial.begin(9600);
+  while (!Serial)
+      delay(10); // will pause Zero, Leonardo, etc until serial console opens
+
+  Serial.println("Starting...");
+
     // Configure board LED pin for output
-    pinMode(LED_BUILTIN, OUTPUT);
+    //pinMode(LED_BUILTIN, OUTPUT);
     pinMode(HEATING_COIL, OUTPUT);
 
     // Set GPIOs to OFF
@@ -126,20 +141,13 @@ void setup() {
     baseLight.clear();
     baseLight.show();
 
-    // Initialize Serial Monitor
-    Serial.begin(9600);
-    while (!Serial)
-        delay(10); // will pause Zero, Leonardo, etc until serial console opens
-
-    Serial.println("Starting...");
-
-    #ifdef defined DEVICE_A
+    #ifdef DEVICE_A
       Serial.println("I am Device A");
-    #elif defined DEVICE_B
+    #elif DEVICE_B
       Serial.println("I am Device B");
     #endif
 
-    #ifdef defined DEVICE_A
+    #ifdef DEVICE_A
       // Start I2C interface
       Wire.begin();
       
@@ -197,12 +205,12 @@ void loop() {
   static unsigned long poll_timestamp = millis();
   static unsigned long wait_timestamp = millis();
 
-  Serial.println(".");
+  // Serial.println(".");
 
   switch(systemState){
     case polling:
         // Check the IMU every 1 sec
-        #ifdef defined DEVICE_A
+        #ifdef DEVICE_A
           if(millis() - poll_timestamp > ONE_SEC){
             if(imu.update() == false){
               Serial.println("Movement Detected.");
@@ -219,7 +227,7 @@ void loop() {
       break;
     case msg_send:
         // Send Message to Buddy
-        #ifdef defined DEVICE_A
+        #ifdef DEVICE_A
           msg_t newMsg;
           newMsg.isMoving = true;
           Serial.println("Message Sending.");
@@ -231,11 +239,16 @@ void loop() {
       break;
     case wait:
         // Give it 5 min before trying to read the IMU again
-        #ifdef defined DEVICE_A
+        #ifdef DEVICE_A
           if(millis() - wait_timestamp > FIVE_MIN){
             Serial.println("Wait Complete");
             systemState = polling;
             digitalWrite(LED_BUILTIN, LOW);
+
+            // Clear Lights after 5 Min ???
+            baseLight.clear();
+            baseLight.show();
+            amIMoving = false;
           }
         #endif
       break;
@@ -243,74 +256,40 @@ void loop() {
       break;
   }
 
-  // Turn off heating after 5 min?
-  if(isHeating){
-    if(millis() - heat_timestamp > FIVE_MIN){
-      digitalWrite(LED_BUILTIN, LOW);
-      digitalWrite(HEATING_COIL, LOW);
-      isHeating = false;
-      baseLight.clear();
+  #ifdef DEVICE_B
+    // Turn off heating after 5 min?
+    if(isHeating){
+      if(millis() - heat_timestamp > FIVE_MIN){
+        Serial.println("Heating Complete");
+        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(HEATING_COIL, LOW);
+        isHeating = false;
+        amIMoving = false;  // TODO: Look into removing this once the second IMU is added
+        hasBuddyMoved = false; // TODO: Look into removing this once the second IMU is added
+
+        // Clear Lights 5 min after Heating is registered
+        baseLight.clear();
+        baseLight.show();
+        Serial.println("Lights Cleared?");
+      }
+    }
+  #endif
+
+  // If either myself, or my buddy has moved
+  if(amIMoving || hasBuddyMoved){
+    // Turn on the Lighting Element
+    for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+      baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
       baseLight.show();
     }
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  // // Reset after 5 min
-  // if(millis() - sentTime > FIVE_MIN){
-  //   // Begin taking readings again
-
-  // }
-
-  // if(millis() - recvTime > FIVE_MIN){
-  //   // Turn off the Heating element
-  // }
-
-  // // Reset the LED after 5 minutes
-  // if(digitalRead(LED_BUILTIN) == HIGH){
-  //   Serial.println("Turning off LED...");
-  //   if(millis() - recvTime > FIVE_MIN){
-  //     digitalWrite(HEATING_COIL, LOW);
-  //     digitalWrite(LED_BUILTIN, LOW);
-  //     Serial.println("It's been 5 min since our buddy moved...");
-  //   }
-  // }
-
-  // #ifdef defined DEVICE_A
-  //   // Check IMU for movement
-  //   Serial.println("Checking IMU...");
-  //   if(millis() - sentTime > FIVE_MIN){ // We only want to send another message if 5 Min has elapsed
-  //     Serial.println("5 Min has elapsed since last message");
-  //     if(imu.update() == false){
-  //       msg_t newMsg;
-  //       newMsg.isMoving = true;
-  //       esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
-
-  //     }
-  //   }
-  // #endif
-  delay(500);
+  // If both myself, and my buddy have moved
+  if((amIMoving && hasBuddyMoved) && !isHeating){
+    // Turn on the Heating Element
+    Serial.println("Heating Element On");
+    digitalWrite(HEATING_COIL, HIGH);
+    isHeating = true;
+    heat_timestamp = millis();
+  }
 }
