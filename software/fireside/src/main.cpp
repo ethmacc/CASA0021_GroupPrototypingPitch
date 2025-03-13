@@ -212,8 +212,8 @@ void loop() {
             else{
               Serial.println("No Movement Detected.");
               amIMoving = false;
-
             }
+            poll_timestamp = millis();  // Reset the timestamp
           }
         #endif
       break;
@@ -225,7 +225,7 @@ void loop() {
           Serial.println("Message Sending.");
           esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
           systemState = wait;
-
+          wait_timestamp = millis();
           digitalWrite(LED_BUILTIN, HIGH);
         #endif
       break;
