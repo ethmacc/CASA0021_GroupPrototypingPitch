@@ -113,90 +113,90 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
 
 void setup() {
 
-      /*Configure board LED pin for output*/ 
-      pinMode(LED_BUILTIN, OUTPUT);
-  
-      // Blink to test power on: Something seems fishy on startup
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(1000);
-      digitalWrite(LED_BUILTIN, LOW);
+  /*Configure board LED pin for output*/ 
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  // Blink to test power on: Something seems fishy on startup
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
 
   // Initialize Serial Monitor
   Serial.begin(9600);
   while (!Serial)
-      delay(10); // will pause Zero, Leonardo, etc until serial console opens
+    delay(10); // will pause Zero, Leonardo, etc until serial console opens
 
   Serial.println("Starting...");
 
-    // Configure board LED pin for output
-    //pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(HEATING_COIL, OUTPUT);
+  // Configure board LED pin for output
+  //pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(HEATING_COIL, OUTPUT);
 
-    // Set GPIOs to OFF
-    digitalWrite(LED_BUILTIN, LOW);  // Start LED off as low
-    digitalWrite(HEATING_COIL, LOW);  // Start Heating Coil off as low
+  // Set GPIOs to OFF
+  digitalWrite(LED_BUILTIN, LOW);  // Start LED off as low
+  digitalWrite(HEATING_COIL, LOW);  // Start Heating Coil off as low
 
-    // Initialize the NeoPixel
-    baseLight.begin();
-    baseLight.clear();
-    baseLight.show();
+  // Initialize the NeoPixel
+  baseLight.begin();
+  baseLight.clear();
+  baseLight.show();
 
-    #ifdef DEVICE_A
-      Serial.println("I am Device A");
-    #elif DEVICE_B
-      Serial.println("I am Device B");
-    #endif
+  #ifdef DEVICE_A
+    Serial.println("I am Device A");
+  #elif DEVICE_B
+    Serial.println("I am Device B");
+  #endif
 
-    #ifdef DEVICE_A
-      // Start I2C interface
-      Wire.begin();
-      
-      // Initialize IMU
-      if(imu.initialize()){
-          Serial.println("IMU initialized successfully");
-      }
-      else{
-          Serial.println("IMU initialization failed");
-      }
-    #endif
-
-    // Import the buddy address from the header file
-    memcpy(buddyAddress, MAC_ADDR_LIST, sizeof(MAC_ADDR_LIST));
-
-    // Announce the buddy address
-    Serial.println("This is my buddy: ");
-    for (int i = 0; i < 6; i++) {
-      Serial.print(buddyAddress[i], HEX);
-      if (i < 5){
-        Serial.print(":");
-      }
+  #ifdef DEVICE_A
+    // Start I2C interface
+    Wire.begin();
+    
+    // Initialize IMU
+    if(imu.initialize()){
+        Serial.println("IMU initialized successfully");
     }
-
-    // Set the device as a WIFI Station
-    WiFi.mode(WIFI_STA);
-    Serial.println("Set as WiFi Station");
-
-    // Init ESP-NOW
-    if (esp_now_init() != 0) {
-      Serial.println("Error initializing ESP-NOW");
-      return;
+    else{
+        Serial.println("IMU initialization failed");
     }
-    Serial.println("ESP-NOW Initialized");
+  #endif
 
-    // Set device as a combo
-    esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-    Serial.println("Set as Combo");
+  // Import the buddy address from the header file
+  memcpy(buddyAddress, MAC_ADDR_LIST, sizeof(MAC_ADDR_LIST));
 
-    // Register callback functions
-    esp_now_register_send_cb(OnDataSent);
-    esp_now_register_recv_cb(OnDataRecv);
-    Serial.println("Registered Callbacks");
+  // Announce the buddy address
+  Serial.println("This is my buddy: ");
+  for (int i = 0; i < 6; i++) {
+    Serial.print(buddyAddress[i], HEX);
+    if (i < 5){
+      Serial.print(":");
+    }
+  }
 
-    // Add broadcast address
-    esp_now_add_peer(buddyAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
-    Serial.println("Added Buddy");
+  // Set the device as a WIFI Station
+  WiFi.mode(WIFI_STA);
+  Serial.println("Set as WiFi Station");
 
-    delay(1000);
+  // Init ESP-NOW
+  if (esp_now_init() != 0) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+  Serial.println("ESP-NOW Initialized");
+
+  // Set device as a combo
+  esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+  Serial.println("Set as Combo");
+
+  // Register callback functions
+  esp_now_register_send_cb(OnDataSent);
+  esp_now_register_recv_cb(OnDataRecv);
+  Serial.println("Registered Callbacks");
+
+  // Add broadcast address
+  esp_now_add_peer(buddyAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+  Serial.println("Added Buddy");
+
+  delay(1000);
 }
 
 void loop() {
@@ -209,48 +209,48 @@ void loop() {
 
   switch(systemState){
     case polling:
-        // Check the IMU every 1 sec
-        #ifdef DEVICE_A
-          if(millis() - poll_timestamp > ONE_SEC){
-            if(imu.update() == false){
-              Serial.println("Movement Detected.");
-              amIMoving = true;
-              systemState = msg_send; // Change the systemState
-            }
-            else{
-              Serial.println("No Movement Detected.");
-              amIMoving = false;
-            }
-            poll_timestamp = millis();  // Reset the timestamp
+      // Check the IMU every 1 sec
+      #ifdef DEVICE_A
+        if(millis() - poll_timestamp > ONE_SEC){
+          if(imu.update() == false){
+            Serial.println("Movement Detected.");
+            amIMoving = true;
+            systemState = msg_send; // Change the systemState
           }
-        #endif
-      break;
-    case msg_send:
-        // Send Message to Buddy
-        #ifdef DEVICE_A
-          msg_t newMsg;
-          newMsg.isMoving = true;
-          Serial.println("Message Sending.");
-          esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
-          systemState = wait;
-          wait_timestamp = millis();
-          digitalWrite(LED_BUILTIN, HIGH);
-        #endif
-      break;
-    case wait:
-        // Give it 5 min before trying to read the IMU again
-        #ifdef DEVICE_A
-          if(millis() - wait_timestamp > FIVE_MIN){
-            Serial.println("Wait Complete");
-            systemState = polling;
-            digitalWrite(LED_BUILTIN, LOW);
-
-            // Clear Lights after 5 Min ???
-            baseLight.clear();
-            baseLight.show();
+          else{
+            Serial.println("No Movement Detected.");
             amIMoving = false;
           }
-        #endif
+          poll_timestamp = millis();  // Reset the timestamp
+        }
+      #endif
+      break;
+    case msg_send:
+      // Send Message to Buddy
+      #ifdef DEVICE_A
+        msg_t newMsg;
+        newMsg.isMoving = true;
+        Serial.println("Message Sending.");
+        esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
+        systemState = wait;
+        wait_timestamp = millis();
+        digitalWrite(LED_BUILTIN, HIGH);
+      #endif
+      break;
+    case wait:
+      // Give it 5 min before trying to read the IMU again
+      #ifdef DEVICE_A
+        if(millis() - wait_timestamp > FIVE_MIN){
+          Serial.println("Wait Complete");
+          systemState = polling;
+          digitalWrite(LED_BUILTIN, LOW);
+
+          // Clear Lights after 5 Min ???
+          baseLight.clear();
+          baseLight.show();
+          amIMoving = false;
+        }
+      #endif
       break;
     default:
       break;
