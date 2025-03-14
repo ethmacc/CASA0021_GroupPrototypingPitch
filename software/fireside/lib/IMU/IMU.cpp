@@ -8,7 +8,7 @@
 
 #include "IMU.hpp"
 
-#define PERCENT_DIFF 0.25
+#define PERCENT_DIFF 0.30
 
 bool IMU::initialize(void)
 {
@@ -46,19 +46,31 @@ bool IMU::update(void)
         int16_t azAvg = azSum / ROLLING_AVG_SIZE;
 
         // Usually a positive value is detected in the X-axis when the sensor is moved
-        if((ax > axAvg * (1 + PERCENT_DIFF)) || (ax < axAvg * (1 - PERCENT_DIFF))){
+        if((ax < axAvg * (1 + PERCENT_DIFF)) || (ax > axAvg * (1 - PERCENT_DIFF))){
             Serial.println("Movement Detected in X-axis");
+            Serial.print("ax: ");
+            Serial.print(ax);
+            Serial.print(" | axAvg: ");
+            Serial.println(axAvg);
             return false;
         }
 
         // Usually a negative value is detected in the Y and Z-axis when the sensor is moved
         if((ay < ayAvg * (1 + PERCENT_DIFF)) || (ay > ayAvg * (1 - PERCENT_DIFF))){
             Serial.println("Movement Detected in Y-axis");
+            Serial.print("ay: ");
+            Serial.print(ay);
+            Serial.print(" | ayAvg: ");
+            Serial.println(ayAvg);
             return false;
         }
 
-        if((az < azAvg * (1 + PERCENT_DIFF)) || (az > azAvg * (1 - PERCENT_DIFF))){
+        if((az > azAvg * (1 + PERCENT_DIFF)) || (az < azAvg * (1 - PERCENT_DIFF))){
             Serial.println("Movement Detected in Z-axis");
+            Serial.print("az: ");
+            Serial.print(az);
+            Serial.print(" | azAvg: ");
+            Serial.println(azAvg);
             return false;
         }
 

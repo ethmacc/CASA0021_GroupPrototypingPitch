@@ -6,9 +6,6 @@
 #include "IMU.hpp"
 #include "macAddr.h"
 
-// #define DEVICE_A 1
-#define DEVICE_B 1
-
 // GPIOs
 // #define LED_BUILTIN D0  // defined within Arduino.h
 // #define SCL D1
@@ -26,9 +23,7 @@
 #define G_HEX 197
 #define B_HEX 143
 
-#ifdef DEVICE_A
-  IMU imu;
-#endif
+IMU imu;
 
 uint8_t buddyAddress[sizeof(MAC_ADDR_LIST)] = {0};  // Ensure the size matches LIST
 
@@ -107,13 +102,13 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   // Save Buddies State
   hasBuddyMoved = newMsg.isMoving;
 
-  amIMoving = hasBuddyMoved;  // TODO: REMOVE THIS FOR THE FINAL IMPLEMENTATION
-  // THIS LINE IS SIMPLY TO TEST ON THE BREADBOARD, SINCE I ONLY HAVE 1 IMU
+  // amIMoving = hasBuddyMoved;  // TODO: REMOVE THIS FOR THE FINAL IMPLEMENTATION
+  // // THIS LINE IS SIMPLY TO TEST ON THE BREADBOARD, SINCE I ONLY HAVE 1 IMU
 }
 
 void setup() {
 
-  /*Configure board LED pin for output*/ 
+  // Configure board LED pin for output
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Blink to test power on: Something seems fishy on startup
@@ -126,10 +121,11 @@ void setup() {
   while (!Serial)
     delay(10); // will pause Zero, Leonardo, etc until serial console opens
 
+  delay(1000);
+
   Serial.println("Starting...");
 
-  // Configure board LED pin for output
-  //pinMode(LED_BUILTIN, OUTPUT);
+  // Configure Heating Coil MOSFET pin for output
   pinMode(HEATING_COIL, OUTPUT);
 
   // Set GPIOs to OFF
@@ -141,24 +137,16 @@ void setup() {
   baseLight.clear();
   baseLight.show();
 
-  #ifdef DEVICE_A
-    Serial.println("I am Device A");
-  #elif DEVICE_B
-    Serial.println("I am Device B");
-  #endif
-
-  #ifdef DEVICE_A
-    // Start I2C interface
-    Wire.begin();
-    
-    // Initialize IMU
-    if(imu.initialize()){
-        Serial.println("IMU initialized successfully");
-    }
-    else{
-        Serial.println("IMU initialization failed");
-    }
-  #endif
+  // Start I2C interface
+  Wire.begin();
+  
+  // Initialize IMU
+  if(imu.initialize()){
+      Serial.println("IMU initialized successfully");
+  }
+  else{
+      Serial.println("IMU initialization failed");
+  }
 
   // Import the buddy address from the header file
   memcpy(buddyAddress, MAC_ADDR_LIST, sizeof(MAC_ADDR_LIST));
@@ -210,70 +198,62 @@ void loop() {
   switch(systemState){
     case polling:
       // Check the IMU every 1 sec
-      #ifdef DEVICE_A
-        if(millis() - poll_timestamp > ONE_SEC){
-          if(imu.update() == false){
-            Serial.println("Movement Detected.");
-            amIMoving = true;
-            systemState = msg_send; // Change the systemState
-          }
-          else{
-            Serial.println("No Movement Detected.");
-            amIMoving = false;
-          }
-          poll_timestamp = millis();  // Reset the timestamp
+      if(millis() - poll_timestamp > ONE_SEC){
+        if(imu.update() == false){
+          Serial.println("Movement Detected.");
+          amIMoving = true;
+          systemState = msg_send; // Change the systemState
         }
-      #endif
+        else{
+          Serial.println("No Movement Detected.");
+          amIMoving = false;
+        }
+        poll_timestamp = millis();  // Reset the timestamp
+      }
       break;
     case msg_send:
       // Send Message to Buddy
-      #ifdef DEVICE_A
-        msg_t newMsg;
-        newMsg.isMoving = true;
-        Serial.println("Message Sending.");
-        esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
-        systemState = wait;
-        wait_timestamp = millis();
-        digitalWrite(LED_BUILTIN, HIGH);
-      #endif
+      msg_t newMsg;
+      newMsg.isMoving = true;
+      Serial.println("Message Sending.");
+      esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
+      systemState = wait;
+      wait_timestamp = millis();
+      digitalWrite(LED_BUILTIN, HIGH);
       break;
     case wait:
       // Give it 5 min before trying to read the IMU again
-      #ifdef DEVICE_A
-        if(millis() - wait_timestamp > FIVE_MIN){
-          Serial.println("Wait Complete");
-          systemState = polling;
-          digitalWrite(LED_BUILTIN, LOW);
+      if(millis() - wait_timestamp > FIVE_MIN){
+        Serial.println("Wait Complete");
+        systemState = polling;
+        digitalWrite(LED_BUILTIN, LOW);
 
-          // Clear Lights after 5 Min ???
-          baseLight.clear();
-          baseLight.show();
-          amIMoving = false;
-        }
-      #endif
+        // Clear Lights after 5 Min ???
+        baseLight.clear();
+        baseLight.show();
+        amIMoving = false;
+      }
       break;
     default:
       break;
   }
 
-  #ifdef DEVICE_B
-    // Turn off heating after 5 min?
-    if(isHeating){
-      if(millis() - heat_timestamp > FIVE_MIN){
-        Serial.println("Heating Complete");
-        digitalWrite(LED_BUILTIN, LOW);
-        digitalWrite(HEATING_COIL, LOW);
-        isHeating = false;
-        amIMoving = false;  // TODO: Look into removing this once the second IMU is added
-        hasBuddyMoved = false; // TODO: Look into removing this once the second IMU is added
+  // Turn off heating after 5 min?
+  if(isHeating){
+    if(millis() - heat_timestamp > FIVE_MIN){
+      Serial.println("Heating Complete");
+      digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(HEATING_COIL, LOW);
+      isHeating = false;
+      // amIMoving = false;  // TODO: Look into removing this once the second IMU is added
+      hasBuddyMoved = false; // TODO: Look into removing this once the second IMU is added
 
-        // Clear Lights 5 min after Heating is registered
-        baseLight.clear();
-        baseLight.show();
-        Serial.println("Lights Cleared?");
-      }
+      // Clear Lights 5 min after Heating is registered
+      baseLight.clear();
+      baseLight.show();
+      Serial.println("Lights Cleared?");
     }
-  #endif
+  }
 
   // If either myself, or my buddy has moved
   if(amIMoving || hasBuddyMoved){
