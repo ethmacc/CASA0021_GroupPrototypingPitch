@@ -8,7 +8,7 @@
 
 #include "IMU.hpp"
 
-#define PERCENT_DIFF 0.30
+#define PERCENT_DIFF 0.5
 
 bool IMU::initialize(void)
 {
