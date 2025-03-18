@@ -3,16 +3,15 @@
 #include <Adafruit_NeoPixel.h>
 #include <espnow.h>
 #include <string.h>
-#include <CapacitiveSensor.h>
-// #include "IMU.hpp"
+#include "touchSensor.hpp"
 #include "macAddr.h"
 
 // GPIOs
 // #define LED_BUILTIN D0  // defined within Arduino.h
-#define ANODE D1
-#define CATHODE D2
 #define HEATING_COIL D3
 #define NEOPIXEL D4
+#define CATHODE D5
+#define ANODE D8
 
 // Time Constants
 #define ONE_SEC 1000
@@ -24,8 +23,7 @@
 #define G_HEX 197
 #define B_HEX 143
 
-// IMU imu;
-CapacitiveSensor capSensor = CapacitiveSensor(CATHODE, ANODE);
+touchSensor touch(CATHODE, ANODE);
 
 uint8_t buddyAddress[sizeof(MAC_ADDR_LIST)] = {0};  // Ensure the size matches LIST
 
@@ -135,19 +133,6 @@ void setup() {
   baseLight.clear();
   baseLight.show();
 
-  capSensor.set_CS_AutocaL_Millis(0xFFFFFFFF);  // Turn off autocalibrate
-
-  // Start I2C interface
-  //Wire.begin();
-  
-  // // Initialize IMU
-  // if(imu.initialize(X_Acc_OFFSET, Y_Acc_OFFSET, Z_Acc_OFFSET, X_Gyr_OFFSET, Y_Gyr_OFFSET, Z_Gyr_OFFSET)){
-  //     Serial.println("IMU initialized successfully");
-  // }
-  // else{
-  //     Serial.println("IMU initialization failed");
-  // }
-
   // Import the buddy address from the header file
   memcpy(buddyAddress, MAC_ADDR_LIST, sizeof(MAC_ADDR_LIST));
 
@@ -190,25 +175,16 @@ void setup() {
 void loop() {
 
   static unsigned long poll_timestamp = millis();
-  static unsigned long light_timestamp = millis();
-  static bool isLit = false;
-
-  long capSensorValue = capSensor.capacitiveSensor(30);
 
   if(millis() - poll_timestamp > ONE_SEC){
 
-
-    Serial.print("Capacitive Sensor Value: ");
-    Serial.println(capSensorValue);
-
-    if(capSensorValue > 1000){
+    if(touch.checkTouch()){
       Serial.println("Touch Detected.");
       // Light up the Neopixel
       for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
         baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
         baseLight.show();
       }
-      isLit = true;
 
       // Send a message 
       msg_t newMsg;
@@ -220,46 +196,17 @@ void loop() {
       Serial.println("No Touch Detected.");
       baseLight.clear();
       baseLight.show();
-      isLit = false;
     }
 
-  //   if(imu.update() == false){
-  //     Serial.println("Movement Detected.");
-
-  //     // Send a message 
-  //     msg_t newMsg;
-  //     newMsg.isMoving = true;
-  //     Serial.println("Message Sending.");
-  //     esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
-      
-  //     // Light up the Neopixel
-  //     for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-  //       baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
-  //       baseLight.show();
-  //     }
-  //     isLit = true;
-  //     light_timestamp = millis();
-  //   }
-  //   else{
-  //     Serial.println("No Movement Detected.");
-  //   }
     poll_timestamp = millis();
   }
 
-  // if(isLit){
-  //   if(millis() - light_timestamp > FIVE_MIN){
-  //     baseLight.clear();
-  //     baseLight.show();
-  //     isLit = false;
-  //   }
-  // }
-
+  // Safety Condition to prevent heating over 5 min
   if(isHeating){
 
     // Check if we should reset
     if(millis() - heat_timestamp > FIVE_MIN){
       Serial.println("Heating Complete");
-      // digitalWrite(LED_BUILTIN, LOW);
       digitalWrite(HEATING_COIL, LOW);
 
       isHeating = false;
