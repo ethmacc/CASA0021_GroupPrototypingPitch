@@ -10,6 +10,7 @@
 
 #define ROLLING_AVG_SIZE 10
 #define PERCENT_DIFF 0.5
+#define TOUCH_THRESHOLD 40
 
 touchSensor::touchSensor(uint8_t cathode, uint8_t anode)
 {
@@ -23,55 +24,55 @@ touchSensor::touchSensor(uint8_t cathode, uint8_t anode)
 bool touchSensor::checkTouch(void)
 {
 
-    // Serial.println("Checking Touch");
-    // Rolling Average
-    static long avgArr[ROLLING_AVG_SIZE] = {0};
-    static long sum = 0;
-    static uint8_t iterator = 0;
+    // // Serial.println("Checking Touch");
+    // // Rolling Average
+    // static long avgArr[ROLLING_AVG_SIZE] = {0};
+    // static long sum = 0;
+    // static uint8_t iterator = 0;
 
     // Grab a reading
     long reading = capSensor->capacitiveSensor(30);
     Serial.print("Reading: ");
     Serial.println(reading);
 
-    Serial.print("arr val: ");
-    Serial.println(avgArr[iterator]);
+    return (reading > TOUCH_THRESHOLD);
 
-    // Check if the first 10 readings have already occured
-    if(avgArr[iterator] != 0){
+    // Serial.print("arr val: ");
+    // Serial.println(avgArr[iterator]);
+
+    // // Check if the first 10 readings have already occured
+    // if(avgArr[iterator] != 0){
         
-        // Grab the Average value
-        long avg = sum / ROLLING_AVG_SIZE;
+    //     // Grab the Average value
+    //     long avg = sum / ROLLING_AVG_SIZE;
 
-        Serial.print("Reading: ");
-        Serial.print(reading);
-        Serial.print(" | Avg: ");
-        Serial.println(avg);
+    //     Serial.print("Reading: ");
+    //     Serial.print(reading);
+    //     Serial.print(" | Avg: ");
+    //     Serial.println(avg);
 
-        // Reading has spiked, there has been a touch!
-        if(reading > avg * (1 + PERCENT_DIFF) ){
-            Serial.println("Touch Detected!");
-            // Serial.print(reading);
-            // Serial.print(" | avg: ");
-            // Serial.println(avg);
-            return true;
-        }
-    }
+    //     // Reading has spiked, there has been a touch!
+    //     if(reading > avg * (1 + PERCENT_DIFF) ){
+    //         Serial.println("Touch Detected!");
+    //         // Serial.print(reading);
+    //         // Serial.print(" | avg: ");
+    //         // Serial.println(avg);
+    //         return true;
+    //     }
+    // }
 
-    // No Touch Detected
-    // Remove the oldest value
-    sum -= avgArr[iterator];
+    // // No Touch Detected
+    // // Remove the oldest value
+    // sum -= avgArr[iterator];
 
-    // Add the new value
-    avgArr[iterator] = reading;
+    // // Add the new value
+    // avgArr[iterator] = reading;
 
-    // Update the sum
-    sum += reading;
+    // // Update the sum
+    // sum += reading;
 
-    // Update the iterator
-    iterator = (iterator + 1) % ROLLING_AVG_SIZE;
-
-    return false;
+    // // Update the iterator
+    // iterator = (iterator + 1) % ROLLING_AVG_SIZE;
 }
 
 void touchSensor::scrapReadings(void)

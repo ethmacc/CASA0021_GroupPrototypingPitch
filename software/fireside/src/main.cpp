@@ -171,7 +171,7 @@ void setup() {
 
   delay(1000);
 
-  touch.scrapReadings();
+  // touch.scrapReadings();
 }
 
 void loop() {
