@@ -24,17 +24,22 @@
 #define B_HEX 87
 #define W_HEX 255
 
+#define PULSE_RATE 1
+#define MAX_PULSE_BRIGHTNESS 255
+
 touchSensor touch(CATHODE, ANODE, DEVICE_THRESHOLD);
 
 uint8_t buddyAddress[sizeof(MAC_ADDR_LIST)] = {0};  // Ensure the size matches LIST
 
 // Heating Element
-bool isHeating = false;
+bool isHeating = false;           // Also refers to the state of the partner's device
 unsigned long heat_timestamp = 0;
 
 // Light Element Flag
-bool isLit = false;
-unsigned long light_timestamp = 0;
+bool isPulse = false;
+
+// Cap Touch Flag
+bool isTouched = false;
 
 // Message Structure
 typedef struct msg_type{
@@ -96,6 +101,7 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   // Serial.println(newMsg.isMoving);
   // Serial.println();
 
+  // Begin the heating, and note that the partner is active
   heat_timestamp = millis();
   isHeating = true;
 
@@ -103,13 +109,7 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   digitalWrite(HEATING_COIL, HIGH);
 
   // Light up the Neopixel
-  light_timestamp = millis();
-  isLit = true;
-  // for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-  //   baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
-  //   baseLight.show();
-  // }
-  pulseLight();
+  isPulse = true;
 }
 
 /**
@@ -119,49 +119,33 @@ void pulseLight(void)
 {
 
   static uint8_t brightness = 0;
+  static bool glowUp;
 
-  static bool glowUp = true;
-  
+  // Check if glow up or down needs to change
+  if(brightness >= MAX_PULSE_BRIGHTNESS){
+    glowUp = false;
+  }
+  else if(brightness <= 0){
+    glowUp = true;
+  }
+
+  // Update the brightness
   if(glowUp){
-
-    // If w_val hasn't reached the max of W_HEX yet...
-    if(brightness < 100){
-
-      // Set the Colors
-      for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-
-        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
-        baseLight.setBrightness(brightness);
-      }
-
-      brightness+=20;
-    }
-    else{
-      // Assume w_val has reached W_HEX
-      glowUp = false;
-    }
-    
+    brightness += PULSE_RATE;
   }
   else{
-    // This is Glow Down mode
-
-    // If w_val hasn't reached the min of 0 yet...
-    if(brightness > 0){
-
-      // Set the Colors
-      for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
-      }
-
-      brightness-=20;
-    }
-    else{
-      // Assume w_val has reached 0
-      glowUp = true;
-    }
+    brightness -= PULSE_RATE;
   }
 
-  baseLight.show();
+  Serial.print("Brightness: ");
+  Serial.println(brightness);
+
+  // Set the brightness
+  for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+    baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
+  }
+  baseLight.setBrightness(brightness);
+  baseLight.show();  
 }
 
 void setup() {
@@ -192,7 +176,10 @@ void setup() {
 
   // Initialize the NeoPixel
   baseLight.begin();
-  baseLight.clear();
+  for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+    baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
+  }
+  baseLight.setBrightness(0); // Set the brightness to 0
   baseLight.show();
 
   // Import the buddy address from the header file
@@ -238,17 +225,22 @@ void loop() {
 
   static unsigned long poll_timestamp = millis();
 
+  // Update at Loop Speed
+  if(isPulse){
+    pulseLight();
+  }
+  else{
+    baseLight.setBrightness(0);
+    baseLight.show();
+  }
+
   if(millis() - poll_timestamp > ONE_SEC){
 
     if(touch.checkTouch()){
       Serial.println("Touch Detected.");
 
-      // Light up the Neopixel
-      // for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-      //   baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
-      //   baseLight.show();
-      // }
-      pulseLight();
+      // Pulse the Light
+      isPulse = true;
 
       // Send a message 
       msg_t newMsg;
@@ -259,21 +251,8 @@ void loop() {
     else{
       Serial.println("No Touch Detected.");
 
-      if(isLit){
-        if(millis() - light_timestamp > FIVE_MIN){
-          Serial.println("User has not touched the device for 5 min.");
-          isLit = false;
-          baseLight.clear();
-          baseLight.show();
-        }
-        // else{
-        //   DO NOTHING, we give the user 5 min to respond.
-        // }
-      }
-      else{
-        baseLight.clear();
-        baseLight.show();
-      }
+      // Turn off the pulse
+      isPulse = false;
     }
 
     poll_timestamp = millis();
@@ -288,10 +267,7 @@ void loop() {
       digitalWrite(HEATING_COIL, LOW);
 
       isHeating = false;
-
-      // Clear Lights after 5 Min ???
-      baseLight.clear();
-      baseLight.show();
+      isPulse = false;
     }
   }
 }
