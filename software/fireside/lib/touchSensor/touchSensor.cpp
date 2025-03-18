@@ -10,15 +10,18 @@
 
 #define ROLLING_AVG_SIZE 10
 #define PERCENT_DIFF 0.5
-#define TOUCH_THRESHOLD 40
+#define TOUCH_THRESHOLD 200
 
-touchSensor::touchSensor(uint8_t cathode, uint8_t anode)
+touchSensor::touchSensor(uint8_t cathode, uint8_t anode, uint8_t deviceThreshold)
 {
     // Update the capSense object
     capSensor = new CapacitiveSensor(cathode, anode);
 
     // Turn off autocalibrate
     capSensor->set_CS_AutocaL_Millis(0xFFFFFFFF);
+
+    // Set the threshold
+    touchThreshold = deviceThreshold;
 }
 
 bool touchSensor::checkTouch(void)
@@ -31,11 +34,11 @@ bool touchSensor::checkTouch(void)
     // static uint8_t iterator = 0;
 
     // Grab a reading
-    long reading = capSensor->capacitiveSensor(30);
+    long reading = this->capSensor->capacitiveSensor(30);
     Serial.print("Reading: ");
     Serial.println(reading);
 
-    return (reading > TOUCH_THRESHOLD);
+    return (reading > this->touchThreshold);
 
     // Serial.print("arr val: ");
     // Serial.println(avgArr[iterator]);

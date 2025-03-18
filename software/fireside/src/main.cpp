@@ -20,16 +20,21 @@
 // NeoPixel Constants
 #define NUMPIXEL_COUNT 8
 #define R_HEX 255
-#define G_HEX 197
-#define B_HEX 143
+#define G_HEX 169
+#define B_HEX 87
+#define W_HEX 255
 
-touchSensor touch(CATHODE, ANODE);
+touchSensor touch(CATHODE, ANODE, DEVICE_THRESHOLD);
 
 uint8_t buddyAddress[sizeof(MAC_ADDR_LIST)] = {0};  // Ensure the size matches LIST
 
 // Heating Element
 bool isHeating = false;
 unsigned long heat_timestamp = 0;
+
+// Light Element Flag
+bool isLit = false;
+unsigned long light_timestamp = 0;
 
 // Message Structure
 typedef struct msg_type{
@@ -96,8 +101,10 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   digitalWrite(HEATING_COIL, HIGH);
 
   // Light up the Neopixel
+  light_timestamp = millis();
+  isLit = true;
   for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-    baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
+    baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
     baseLight.show();
   }
 }
@@ -170,8 +177,6 @@ void setup() {
   Serial.println("Added Buddy");
 
   delay(1000);
-
-  // touch.scrapReadings();
 }
 
 void loop() {
@@ -182,9 +187,10 @@ void loop() {
 
     if(touch.checkTouch()){
       Serial.println("Touch Detected.");
+
       // Light up the Neopixel
       for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
+        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
         baseLight.show();
       }
 
@@ -196,8 +202,22 @@ void loop() {
     }
     else{
       Serial.println("No Touch Detected.");
-      baseLight.clear();
-      baseLight.show();
+
+      if(isLit){
+        if(millis() - light_timestamp > FIVE_MIN){
+          Serial.println("User has not touched the device for 5 min.");
+          isLit = false;
+          baseLight.clear();
+          baseLight.show();
+        }
+        // else{
+        //   DO NOTHING, we give the user 5 min to respond.
+        // }
+      }
+      else{
+        baseLight.clear();
+        baseLight.show();
+      }
     }
 
     poll_timestamp = millis();

@@ -19,15 +19,18 @@ class touchSensor {
         // Pointer to Capacitive Sensor Object
         CapacitiveSensor *capSensor;
 
+        uint8_t touchThreshold = 0;
+
     public:
 
         /**
          * @brief Construct a new touch Sensor object
          * 
-         * @param CATHODE 
-         * @param ANODE 
+         * @param cathode 
+         * @param anode 
+         * @param deviceThreshold
          */
-        touchSensor(uint8_t cathode, uint8_t anode);
+        touchSensor(uint8_t cathode, uint8_t anode, uint8_t deviceThreshold);
 
         /**
          * @brief Check if the touch sensor is touched
