@@ -35,6 +35,11 @@ class touchSensor {
          * @return true
          */
         bool checkTouch(void);
+
+        /**
+         * @brief Scrap the readings until there is a stabilized value
+         */
+        void scrapReadings(void);
 };
 
 #endif

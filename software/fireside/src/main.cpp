@@ -10,8 +10,8 @@
 // #define LED_BUILTIN D0  // defined within Arduino.h
 #define HEATING_COIL D3
 #define NEOPIXEL D4
-#define CATHODE D5
-#define ANODE D8
+#define CATHODE D8
+#define ANODE D5
 
 // Time Constants
 #define ONE_SEC 1000
@@ -170,6 +170,8 @@ void setup() {
   Serial.println("Added Buddy");
 
   delay(1000);
+
+  touch.scrapReadings();
 }
 
 void loop() {
