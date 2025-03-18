@@ -18,11 +18,11 @@ class IMU{
         /* MPU6050 default I2C address is 0x68*/
         MPU6050 mpu;
 
-        void setOffsets(void);
+        void setOffsets(int X_Acc_OFFSET, int Y_Acc_OFFSET, int Z_Acc_OFFSET, int X_Gyr_OFFSET, int Y_Gyr_OFFSET, int Z_Gyr_OFFSET);
 
     public:
 
-        bool initialize(void);
+        bool initialize(int X_Acc_OFFSET, int Y_Acc_OFFSET, int Z_Acc_OFFSET, int X_Gyr_OFFSET, int Y_Gyr_OFFSET, int Z_Gyr_OFFSET);
 
         bool update(void);
 };

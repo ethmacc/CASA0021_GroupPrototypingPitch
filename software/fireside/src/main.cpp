@@ -3,19 +3,20 @@
 #include <Adafruit_NeoPixel.h>
 #include <espnow.h>
 #include <string.h>
-#include "IMU.hpp"
+#include <CapacitiveSensor.h>
+// #include "IMU.hpp"
 #include "macAddr.h"
 
 // GPIOs
 // #define LED_BUILTIN D0  // defined within Arduino.h
-// #define SCL D1
-// #define SDA D2
+#define ANODE D1
+#define CATHODE D2
 #define HEATING_COIL D3
 #define NEOPIXEL D4
 
 // Time Constants
 #define ONE_SEC 1000
-#define FIVE_MIN 10000
+#define FIVE_MIN 20000
 
 // NeoPixel Constants
 #define NUMPIXEL_COUNT 8
@@ -23,29 +24,20 @@
 #define G_HEX 197
 #define B_HEX 143
 
-IMU imu;
+// IMU imu;
+CapacitiveSensor capSensor = CapacitiveSensor(CATHODE, ANODE);
 
 uint8_t buddyAddress[sizeof(MAC_ADDR_LIST)] = {0};  // Ensure the size matches LIST
 
 // Heating Element
 bool isHeating = false;
-unsigned long heat_timestamp;
+unsigned long heat_timestamp = 0;
 
 // Message Structure
 typedef struct msg_type{
   bool isMoving;
 }msg_t;
 
-// System States
-enum systemState_t {
-  polling,
-  msg_send,
-  wait,
-};
-
-// Movement Flags
-bool amIMoving = false;
-bool hasBuddyMoved = false;
 
 // NeoPixel
 Adafruit_NeoPixel baseLight = Adafruit_NeoPixel(NUMPIXEL_COUNT, NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -99,11 +91,17 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   Serial.println(newMsg.isMoving);
   Serial.println();
 
-  // Save Buddies State
-  hasBuddyMoved = newMsg.isMoving;
+  heat_timestamp = millis();
+  isHeating = true;
 
-  // amIMoving = hasBuddyMoved;  // TODO: REMOVE THIS FOR THE FINAL IMPLEMENTATION
-  // // THIS LINE IS SIMPLY TO TEST ON THE BREADBOARD, SINCE I ONLY HAVE 1 IMU
+  // Turn on Heating
+  digitalWrite(HEATING_COIL, HIGH);
+
+  // Light up the Neopixel
+  for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+    baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
+    baseLight.show();
+  }
 }
 
 void setup() {
@@ -137,16 +135,18 @@ void setup() {
   baseLight.clear();
   baseLight.show();
 
+  capSensor.set_CS_AutocaL_Millis(0xFFFFFFFF);  // Turn off autocalibrate
+
   // Start I2C interface
-  Wire.begin();
+  //Wire.begin();
   
-  // Initialize IMU
-  if(imu.initialize()){
-      Serial.println("IMU initialized successfully");
-  }
-  else{
-      Serial.println("IMU initialization failed");
-  }
+  // // Initialize IMU
+  // if(imu.initialize(X_Acc_OFFSET, Y_Acc_OFFSET, Z_Acc_OFFSET, X_Gyr_OFFSET, Y_Gyr_OFFSET, Z_Gyr_OFFSET)){
+  //     Serial.println("IMU initialized successfully");
+  // }
+  // else{
+  //     Serial.println("IMU initialization failed");
+  // }
 
   // Import the buddy address from the header file
   memcpy(buddyAddress, MAC_ADDR_LIST, sizeof(MAC_ADDR_LIST));
@@ -189,87 +189,84 @@ void setup() {
 
 void loop() {
 
-  static systemState_t systemState = polling;
   static unsigned long poll_timestamp = millis();
-  static unsigned long wait_timestamp = millis();
+  static unsigned long light_timestamp = millis();
+  static bool isLit = false;
 
-  // Serial.println(".");
+  long capSensorValue = capSensor.capacitiveSensor(30);
 
-  switch(systemState){
-    case polling:
-      // Check the IMU every 1 sec
-      if(millis() - poll_timestamp > ONE_SEC){
-        if(imu.update() == false){
-          Serial.println("Movement Detected.");
-          amIMoving = true;
-          systemState = msg_send; // Change the systemState
-        }
-        else{
-          Serial.println("No Movement Detected.");
-          amIMoving = false;
-        }
-        poll_timestamp = millis();  // Reset the timestamp
+  if(millis() - poll_timestamp > ONE_SEC){
+
+
+    Serial.print("Capacitive Sensor Value: ");
+    Serial.println(capSensorValue);
+
+    if(capSensorValue > 1000){
+      Serial.println("Touch Detected.");
+      // Light up the Neopixel
+      for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
+        baseLight.show();
       }
-      break;
-    case msg_send:
-      // Send Message to Buddy
+      isLit = true;
+
+      // Send a message 
       msg_t newMsg;
       newMsg.isMoving = true;
       Serial.println("Message Sending.");
       esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
-      systemState = wait;
-      wait_timestamp = millis();
-      digitalWrite(LED_BUILTIN, HIGH);
-      break;
-    case wait:
-      // Give it 5 min before trying to read the IMU again
-      if(millis() - wait_timestamp > FIVE_MIN){
-        Serial.println("Wait Complete");
-        systemState = polling;
-        digitalWrite(LED_BUILTIN, LOW);
-
-        // Clear Lights after 5 Min ???
-        baseLight.clear();
-        baseLight.show();
-        amIMoving = false;
-      }
-      break;
-    default:
-      break;
-  }
-
-  // Turn off heating after 5 min?
-  if(isHeating){
-    if(millis() - heat_timestamp > FIVE_MIN){
-      Serial.println("Heating Complete");
-      digitalWrite(LED_BUILTIN, LOW);
-      digitalWrite(HEATING_COIL, LOW);
-      isHeating = false;
-      // amIMoving = false;  // TODO: Look into removing this once the second IMU is added
-      hasBuddyMoved = false; // TODO: Look into removing this once the second IMU is added
-
-      // Clear Lights 5 min after Heating is registered
+    }
+    else{
+      Serial.println("No Touch Detected.");
       baseLight.clear();
       baseLight.show();
-      Serial.println("Lights Cleared?");
+      isLit = false;
     }
+
+  //   if(imu.update() == false){
+  //     Serial.println("Movement Detected.");
+
+  //     // Send a message 
+  //     msg_t newMsg;
+  //     newMsg.isMoving = true;
+  //     Serial.println("Message Sending.");
+  //     esp_now_send(buddyAddress, (uint8_t *) &newMsg, sizeof(newMsg));
+      
+  //     // Light up the Neopixel
+  //     for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+  //       baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
+  //       baseLight.show();
+  //     }
+  //     isLit = true;
+  //     light_timestamp = millis();
+  //   }
+  //   else{
+  //     Serial.println("No Movement Detected.");
+  //   }
+    poll_timestamp = millis();
   }
 
-  // If either myself, or my buddy has moved
-  if(amIMoving || hasBuddyMoved){
-    // Turn on the Lighting Element
-    for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-      baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX));
+  // if(isLit){
+  //   if(millis() - light_timestamp > FIVE_MIN){
+  //     baseLight.clear();
+  //     baseLight.show();
+  //     isLit = false;
+  //   }
+  // }
+
+  if(isHeating){
+
+    // Check if we should reset
+    if(millis() - heat_timestamp > FIVE_MIN){
+      Serial.println("Heating Complete");
+      // digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(HEATING_COIL, LOW);
+
+      isHeating = false;
+
+      // Clear Lights after 5 Min ???
+      baseLight.clear();
       baseLight.show();
     }
-  }
-
-  // If both myself, and my buddy have moved
-  if((amIMoving && hasBuddyMoved) && !isHeating){
-    // Turn on the Heating Element
-    Serial.println("Heating Element On");
-    digitalWrite(HEATING_COIL, HIGH);
-    isHeating = true;
-    heat_timestamp = millis();
   }
 }
