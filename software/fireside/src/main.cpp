@@ -41,13 +41,15 @@ typedef struct msg_type{
   bool isMoving;
 }msg_t;
 
-
 // NeoPixel
 Adafruit_NeoPixel baseLight = Adafruit_NeoPixel(NUMPIXEL_COUNT, NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
-// Callback functions
+// Callback Functions
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus);
 void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len);
+
+// Lighting Effect Functions
+void pulseLight(void);
 
 /**
  * @brief Callback function that will be called when data is sent
@@ -58,14 +60,14 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len);
  */
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
-  Serial.print("Msg Sent to: ");
-  for (int i = 0; i < 6; i++) {
-    Serial.print(mac_addr[i], HEX);
-    if (i < 5){
-      Serial.print(":");
-    }
-  }
-  Serial.println();
+  // Serial.print("Msg Sent to: ");
+  // for (int i = 0; i < 6; i++) {
+  //   Serial.print(mac_addr[i], HEX);
+  //   if (i < 5){
+  //     Serial.print(":");
+  //   }
+  // }
+  // Serial.println();
 
   Serial.print("Last Packet Send Status: ");
   if (sendStatus == 0){
@@ -88,11 +90,11 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
 
   msg_t newMsg;
   memcpy(&newMsg, data, sizeof(newMsg));
-  Serial.print("Msg Received: ");
-  Serial.println(len);
-  Serial.print("isMoving: ");
-  Serial.println(newMsg.isMoving);
-  Serial.println();
+  // Serial.print("Msg Received: ");
+  // Serial.println(len);
+  // Serial.print("isMoving: ");
+  // Serial.println(newMsg.isMoving);
+  // Serial.println();
 
   heat_timestamp = millis();
   isHeating = true;
@@ -103,10 +105,63 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
   // Light up the Neopixel
   light_timestamp = millis();
   isLit = true;
-  for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-    baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
-    baseLight.show();
+  // for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+  //   baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
+  //   baseLight.show();
+  // }
+  pulseLight();
+}
+
+/**
+ * @brief Function to pulse the light
+ */
+void pulseLight(void)
+{
+
+  static uint8_t brightness = 0;
+
+  static bool glowUp = true;
+  
+  if(glowUp){
+
+    // If w_val hasn't reached the max of W_HEX yet...
+    if(brightness < 100){
+
+      // Set the Colors
+      for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+
+        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
+        baseLight.setBrightness(brightness);
+      }
+
+      brightness+=20;
+    }
+    else{
+      // Assume w_val has reached W_HEX
+      glowUp = false;
+    }
+    
   }
+  else{
+    // This is Glow Down mode
+
+    // If w_val hasn't reached the min of 0 yet...
+    if(brightness > 0){
+
+      // Set the Colors
+      for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
+      }
+
+      brightness-=20;
+    }
+    else{
+      // Assume w_val has reached 0
+      glowUp = true;
+    }
+  }
+
+  baseLight.show();
 }
 
 void setup() {
@@ -189,10 +244,11 @@ void loop() {
       Serial.println("Touch Detected.");
 
       // Light up the Neopixel
-      for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
-        baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
-        baseLight.show();
-      }
+      // for(uint8_t i = 0 ; i < NUMPIXEL_COUNT; i++){
+      //   baseLight.setPixelColor(i, baseLight.Color(R_HEX, G_HEX, B_HEX, W_HEX));
+      //   baseLight.show();
+      // }
+      pulseLight();
 
       // Send a message 
       msg_t newMsg;
