@@ -250,9 +250,6 @@ void loop() {
     }
     else{
       Serial.println("No Touch Detected.");
-
-      // Turn off the pulse
-      isPulse = false;
     }
 
     poll_timestamp = millis();
