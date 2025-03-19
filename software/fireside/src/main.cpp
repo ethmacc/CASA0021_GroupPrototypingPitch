@@ -27,27 +27,25 @@
 #define PULSE_RATE 1
 #define MAX_PULSE_BRIGHTNESS 255
 
+// Touch Sensor
 touchSensor touch(CATHODE, ANODE, DEVICE_THRESHOLD);
 
+// NeoPixel
+Adafruit_NeoPixel baseLight = Adafruit_NeoPixel(NUMPIXEL_COUNT, NEOPIXEL, NEO_GRB + NEO_KHZ800);
+
+// Buddy Address
 uint8_t buddyAddress[sizeof(MAC_ADDR_LIST)] = {0};  // Ensure the size matches LIST
 
+// Check if the device is on
+bool isOn = false;
+
 // Heating Element
-bool isHeating = false;           // Also refers to the state of the partner's device
 unsigned long heat_timestamp = 0;
-
-// Light Element Flag
-bool isPulse = false;
-
-// Cap Touch Flag
-bool isTouched = false;
 
 // Message Structure
 typedef struct msg_type{
   bool isMoving;
 }msg_t;
-
-// NeoPixel
-Adafruit_NeoPixel baseLight = Adafruit_NeoPixel(NUMPIXEL_COUNT, NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 // Callback Functions
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus);
@@ -103,13 +101,10 @@ void OnDataRecv(uint8_t *mac_addr, uint8_t *data, uint8_t len) {
 
   // Begin the heating, and note that the partner is active
   heat_timestamp = millis();
-  isHeating = true;
+  isOn = true;
 
   // Turn on Heating
   digitalWrite(HEATING_COIL, HIGH);
-
-  // Light up the Neopixel
-  isPulse = true;
 }
 
 /**
@@ -137,6 +132,7 @@ void pulseLight(void)
     brightness -= PULSE_RATE;
   }
 
+  // DO NOT DELETE: for some reason, this slows the pulse rate enough to be a nice soft pulse.
   Serial.print("Brightness: ");
   Serial.println(brightness);
 
@@ -226,7 +222,7 @@ void loop() {
   static unsigned long poll_timestamp = millis();
 
   // Update at Loop Speed
-  if(isPulse){
+  if(isOn){
     pulseLight();
   }
   else{
@@ -234,13 +230,14 @@ void loop() {
     baseLight.show();
   }
 
+  // Update every Second
   if(millis() - poll_timestamp > ONE_SEC){
 
     if(touch.checkTouch()){
       Serial.println("Touch Detected.");
 
-      // Pulse the Light
-      isPulse = true;
+      heat_timestamp = millis();
+      isOn = true;
 
       // Send a message 
       msg_t newMsg;
@@ -256,15 +253,14 @@ void loop() {
   }
 
   // Safety Condition to prevent heating over 5 min
-  if(isHeating){
+  if(isOn){
 
     // Check if we should reset
     if(millis() - heat_timestamp > FIVE_MIN){
       Serial.println("Heating Complete");
       digitalWrite(HEATING_COIL, LOW);
 
-      isHeating = false;
-      isPulse = false;
+      isOn = false;
     }
   }
 }
