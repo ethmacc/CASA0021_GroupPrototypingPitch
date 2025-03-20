@@ -2,7 +2,7 @@
 
 ## CASA 0021: Group Prototype and Pitch
 
-*Share the healing sense of touch with loved ones, from anywhere*
+*Share the healing sense of touch with loved ones, from anywhere.*
 
 ## Table of Contents
 
@@ -76,13 +76,39 @@ Explain the logic of the heating timers and such
 Add a brief about how the software was originally split up
 
 
-
-
 ### Custom PCB Design
 
 ## Lessons Learned
 
+- PLA is pretty decent for conducting heat
+- Where to place the load in a circuit, as opposed to the gate voltage from a MOSFET
+- Ergonomics of the hand
+- How to create heat through resistance
+- NiChrome Wire
+- Capacitive Touch Sensors
+- Using metallic silver to cut out light
+
 ## Future Additions
+
+- Look into different materials
+    - Ceramics?
+    - Metals?
+    - Stones?
+- Move away from heat pad to Nichrome again
+    - Embeddeding Nichrome into a ceramic
+- In-built battery vs external power source
+- Switch to Wi-Fi or BLE to expand the range of connectivity
+    - Wi-Fi means create a web portal accessible by QR code to connect to local networks.
+    - BLE means creating a phone app to connect and communicate over distances.
+- More testing into the form design
+    - Smaller design? More Palm-able?
+- Custom PCB with a smaller form factor
+    - Integrate LEDs into the design.
+    - Better Diffusion of color?
+- Multi-color support?
+- Research into alternatives from aluminum foil.
+    - Double the Nichrome wire as the capacitor?
+
 
 ## Support
 
