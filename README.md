@@ -1,8 +1,8 @@
-# FireSide
+# Hot Stone
 
 ## CASA 0021: Group Prototype and Pitch
 
-*Insert the Tweet Here*
+*Share the healing sense of touch with loved ones, from anywhere*
 
 ## Table of Contents
 
