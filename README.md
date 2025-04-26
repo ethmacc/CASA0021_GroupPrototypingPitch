@@ -8,9 +8,9 @@
 
 - [What is HotStone?](#what-is-hotstone)
 - [Getting Started](#getting-started)
-    -[Setup](#setup)
-    -[Libraries](#libraries-used)
-    -[Running the App](#running-the-application)
+    - [Setup](#setup)
+    - [Libraries](#libraries-used)
+    - [Running the App](#running-the-application)
 - [Further Questions](#Further-Questions)
 - [Developers](#developers)
 
