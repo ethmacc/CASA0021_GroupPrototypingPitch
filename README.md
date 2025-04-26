@@ -25,8 +25,6 @@ HotStone is a prototype device that allows two users to bond over a shared exper
 
 There have been a number of attempts to create devices that connect people over the miles, such as Frebble by Frederic Petrignani (https://www.kickstarter.com/projects/396691740/hold-hands-online-when-you-miss-someone). However, we believe we are the first to successfully demonstrate a prototype device that is able to transfer warmth to another user over the internet.
 
-Link it here
-
 ## How to Use
 
 ## Design Journey
