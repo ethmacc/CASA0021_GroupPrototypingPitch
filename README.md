@@ -1,6 +1,4 @@
-# Hot Stone
-
-## CASA 0021: Group Prototype and Pitch
+# Hot Stone - a CASA0021: Group Prototype and Pitch project
 
 <img src="https://github.com/user-attachments/assets/9073ca0b-1672-47e7-8c66-f298b7448cce" width="600"/>
 
