@@ -2,6 +2,8 @@
 
 ## CASA 0021: Group Prototype and Pitch
 
+<img src="https://github.com/user-attachments/assets/9073ca0b-1672-47e7-8c66-f298b7448cce" width="600"/>
+
 *Share the healing sense of touch with loved ones, from anywhere.*
 
 ## Table of Contents
