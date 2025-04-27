@@ -1,6 +1,6 @@
-# Hot Stone
+# HotStone - a CASA0021: Group Prototype and Pitch project
 
-## CASA 0021: Group Prototype and Pitch
+<img src="https://github.com/user-attachments/assets/9073ca0b-1672-47e7-8c66-f298b7448cce" width="600"/>
 
 *Share the healing sense of touch with loved ones, from anywhere.*
 
@@ -14,12 +14,11 @@
 - [Further Questions](#Further-Questions)
 - [Developers](#developers)
 
-
 ## What is HotStone?
 
-HotStone is an internet-connected pair of smart heating devices designed to help people who are physically apart, feel emotionally connected.
+HotStone is a prototype device that allows two users to bond over a shared experience of warmth across the distance. It is primarily aimed at users who, for one reason or another, find themselves in a long-distance relationship / friendship with another person or family member. Utilizing Internet-of-Things (IoT) technology, it is possible to create an interaction where one user putting their hand on their device creates a warm sensation for the other person when they touch the other paired device and vice versa.
 
-Inspired by the intimate gesture of holding hands, the device allows the transfer of physical warmth as a means of subtle, non-verbal communication over the miles. When one person places their hand on the device, their partner’s paired device receives the visual cue of a pulsing light and starts to warm up. When their partner then places their hand on their own device, the first device also gently warms up, creating a shared experience.
+There have been a number of attempts to create devices that connect people over the miles, such as Frebble by Frederic Petrignani (https://www.kickstarter.com/projects/396691740/hold-hands-online-when-you-miss-someone). However, we believe we are the first to successfully demonstrate a prototype device that is able to transfer warmth to another user over the internet.
 
 ## Getting Started
 
