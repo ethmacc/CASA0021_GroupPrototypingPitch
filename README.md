@@ -19,7 +19,7 @@
 
 HotStone is a prototype device that allows two users to bond over a shared experience of warmth across the distance. It is primarily aimed at users who, for one reason or another, find themselves in a long-distance relationship / friendship with another person or family member. Utilizing Internet-of-Things (IoT) technology, it is possible to create an interaction where one user putting their hand on their device creates a warm sensation for the other person when they touch the other paired device and vice versa.
 
-There have been a number of attempts to create devices that connect people over the miles, such as Frebble by Frederic Petrignani (https://www.kickstarter.com/projects/396691740/hold-hands-online-when-you-miss-someone). However, we believe we are the first to successfully demonstrate a prototype device that is able to transfer warmth to another user over the internet.
+There have been a number of attempts to create devices that connect people over the miles, such as [Frebble by Frederic Petrignani](https://www.kickstarter.com/projects/396691740/hold-hands-online-when-you-miss-someone). However, we believe we are the first to successfully demonstrate a prototype device that is able to transfer warmth to another user over the internet.
 
 ## Getting Started
 
