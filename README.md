@@ -6,115 +6,82 @@
 
 ## Table of Contents
 
-- [Abstract](#Abstract)
-- [Reasoning](#Reasoning)
-- [How to Use](#how-to-use)
-- [Design Journey](#how-to-use)
-    - [Physical Design](#physical-design)
-    - [Electrical Prototyping](#electrical-prototyping)
-    - [Custom PCB Design](#custom-pcb-design)
-- [Lessons Learned](#lessons-learned)
-- [Future Additions](#future-additions)
-- [Support](#support)
-- [Appendix](#appendix)
+- [What is HotStone?](#what-is-hotstone)
+- [Getting Started](#getting-started)
+    - [Setup](#setup)
+    - [Libraries](#libraries-used)
+    - [Running the App](#running-the-application)
+- [Further Questions](#Further-Questions)
+- [Developers](#developers)
 
-## Abstract
+## What is HotStone?
+
 HotStone is a prototype device that allows two users to bond over a shared experience of warmth across the distance. It is primarily aimed at users who, for one reason or another, find themselves in a long-distance relationship / friendship with another person or family member. Utilizing Internet-of-Things (IoT) technology, it is possible to create an interaction where one user putting their hand on their device creates a warm sensation for the other person when they touch the other paired device and vice versa.
-
-## Reasoning
 
 There have been a number of attempts to create devices that connect people over the miles, such as Frebble by Frederic Petrignani (https://www.kickstarter.com/projects/396691740/hold-hands-online-when-you-miss-someone). However, we believe we are the first to successfully demonstrate a prototype device that is able to transfer warmth to another user over the internet.
 
-## How to Use
+## Getting Started
 
-## Design Journey
+### Setup
+To reproduce this project, users will need to first set up [PlatformIO on VS Code](https://platformio.org/install/ide?install=vscode). Once the user has the software directory on their local machine, and opened on PlatformIO, the register, and calibration process can begin. Within the `include` directory, create a file named `macAddr.h` this file can maintain the unique MAC addresses of the partner devices, as well as the unique threshold value for the capacitive sensor. This file will require the following format:
+```
+#pragma once
 
-### Physical Design
+#include <stdint.h>
 
-#### Sphere
+#define DEVICE_B
 
-#### Travel Mug
+#ifdef DEVICE_A   // Device B Address
+   static const uint8_t MAC_ADDR_LIST[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+   static const uint8_t DEVICE_THRESHOLD = xxx;
 
-#### A Study in Form
+#endif
+#ifdef DEVICE_B   // Device A Address
+   static const uint8_t MAC_ADDR_LIST[] = {0x07, 0x08, 0x09, 0x10, 0x11, 0x12};
+   static const uint8_t DEVICE_THRESHOLD = xxx;
+#endif
 
-### Software and Electrical Prototyping
+```
 
-Basic Component Selection
+For each device the user will need to find their unique MAC Address and replace the values within the above arrays. This can be done by running using the following script on your device:
 
-How did we select these items, flow off what Ethan adds for his physical design parts.
+```
+uint8_t baseMac[6];
+esp_err_t ret = esp_wifi_get_mac(WIFI_IF_STA, baseMac);
+if (ret == ESP_OK) {
+  Serial.printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+                baseMac[0], baseMac[1], baseMac[2],
+                baseMac[3], baseMac[4], baseMac[5]);
+} else {
+  Serial.println("Failed to read MAC address");
+}
+``` 
 
-Add research on how to create heat, pumping current through the 100 Ohm resistors
+Once the MAC addresses have been set, we can set the threshold values. With the device plugged into a computer, open the serial port monitor, and place your hand on the device. The serial port should print out the capacitive values. Select a sensible value between the capacitive values when the hand is not on the device, as opposed to the values after the hand has been placed on the device. This value will replace the `xxx` within the `macAddr.h` file. With this code flashed on both devices, the user is ready to use the device normally.
 
-Screenshots of the math.
-What is the required current and voltage to heat the resistors
+### Libraries Used
 
-Initial attempts to power through the MCU
+- Adafruit NeoPixel: to Adjust colors
+- Capacitive Sense: to Register a Users Touch
 
-Switching to the MOSFET
+### Running the Application
 
-Document the MOSFET issues. Specifically what happned when Vg > Vgs.
-add the photos from the chat history with Ethan.
+Once the user has saved the MAC Address and capacitive touch threshold value, flash the code to the microcontroller in PlatformIO.
 
-Walk through the usage of Nichrome Wire as a heating element
+## Further Questions
 
-The switch to the heating pads to simplify the device.
+Please reach out to the developers of this project, or add an issue to this repo.
 
-Pivot to Software
+## Developers
 
-What libraries are we using
-copy the docs for Platform.IO usage to the appendix and reference it
+### Prototype and Software
+Vineeth Kirandumkara: [@vineethk96](https://github.com/vineethk96)
 
-Talk about ESPNow, and briefly explain the original idea for using a mobile app like the competitor.
+### Product Design
+Ethan Low: [@ethmacc](https://github.com/ethmacc)
 
-MAC address issues can be referenced within lessons learned.
+### PCB Design
+Donghao Zhang: [@wudaozhiying1](https://github.com/wudaozhiying1)
 
-Add a refined diagram of the FSM
-
-Explain the logic of the heating timers and such
-
-Add a brief about how the software was originally split up
-
-
-### Custom PCB Design
-
-## Lessons Learned
-
-- PLA is pretty decent for conducting heat
-- Where to place the load in a circuit, as opposed to the gate voltage from a MOSFET
-- Ergonomics of the hand
-- How to create heat through resistance
-- NiChrome Wire
-- Capacitive Touch Sensors
-- Using metallic silver to cut out light
-
-## Future Additions
-
-- Look into different materials
-    - Ceramics?
-    - Metals?
-    - Stones?
-- Move away from heat pad to Nichrome again
-    - Embeddeding Nichrome into a ceramic
-- In-built battery vs external power source
-- Switch to Wi-Fi or BLE to expand the range of connectivity
-    - Wi-Fi means create a web portal accessible by QR code to connect to local networks.
-    - BLE means creating a phone app to connect and communicate over distances.
-- More testing into the form design
-    - Smaller design? More Palm-able?
-- Custom PCB with a smaller form factor
-    - Integrate LEDs into the design.
-    - Better Diffusion of color?
-- Multi-color support?
-- Research into alternatives from aluminum foil.
-    - Double the Nichrome wire as the capacitor?
-
-
-## Support
-
-## Appendix
-
-### Heating Element Research
-
-### Circuit Analysis
-
-### MOSFET
+### Media
+Yue Zhu: [@XLunaXX07](https://github.com/XLunaXX07)
