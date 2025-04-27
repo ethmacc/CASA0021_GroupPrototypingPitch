@@ -11,6 +11,7 @@
     - [Setup](#setup)
     - [Libraries](#libraries-used)
     - [Running the App](#running-the-application)
+- [Future Updates](#future-updates)
 - [Further Questions](#Further-Questions)
 - [Developers](#developers)
 
@@ -67,6 +68,14 @@ Once the MAC addresses have been set, we can set the threshold values. With the 
 ### Running the Application
 
 Once the user has saved the MAC Address and capacitive touch threshold value, flash the code to the microcontroller in PlatformIO.
+
+## Future Updates
+
+- Further study into material selection
+- Further study into NiChrome Wire as a heating element
+- Convert prototype board to PCB
+- Convert ESP-NOW to WiFi
+- Add QR Code or NFC tag to link users to a page to add WiFi details or add multiple devices to the network
 
 ## Further Questions
 
