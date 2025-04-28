@@ -11,6 +11,8 @@
     - [Setup](#setup)
     - [Libraries](#libraries-used)
     - [Running the App](#running-the-application)
+    - [Hardware-enclosure](#hardware-enclosure)
+    - [Hardware-circuit](#hardware-circuit)
 - [Future Updates](#future-updates)
 - [Further Questions](#Further-Questions)
 - [Developers](#developers)
@@ -62,8 +64,8 @@ Once the MAC addresses have been set, we can set the threshold values. With the 
 
 ### Libraries Used
 
-- Adafruit NeoPixel: to Adjust colors
-- Capacitive Sense: to Register a Users Touch
+- [Adafruit NeoPixel](https://docs.arduino.cc/libraries/adafruit-neopixel/): to Adjust colors
+- [Capacitive Sensor](https://docs.arduino.cc/libraries/capacitivesensor/): to Register a Users Touch
 
 ### Running the Application
 
