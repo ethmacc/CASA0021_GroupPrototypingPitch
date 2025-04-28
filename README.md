@@ -148,7 +148,7 @@ Please reach out to the developers of this project, or add an issue to this repo
 
 ## Developers
 <a href="https://github.com/ethmacc/CASA0021_GroupPrototypingPitch/graphs/contributors">
-  <img src="https://contributors-img.web.app/image?repo=ethmacc/CASA0021_GroupPrototypingPitch/" />
+  <img src="https://contributors-img.web.app/image?repo=ethmacc/CASA0021_GroupPrototypingPitch" />
 </a>
 
 ### Prototype and Software
