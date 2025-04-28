@@ -101,7 +101,7 @@ Note that the IMU was replaced by a capative sensor for a more natural human int
 
 The main code in ```software/hotstone/src/main.cpp``` describes which pins the capacitive sensor should be soldered to. A 220k Ohm resistor was used for this sub-circuit (tested with an ESP8266):
 
-![IMG_9087](https://github.com/user-attachments/assets/16a029a0-b9c3-43cc-ba8d-eea6cc87670d)
+<img src="https://github.com/user-attachments/assets/16a029a0-b9c3-43cc-ba8d-eea6cc87670d" width="600" />
 
 ## Future Updates
 
