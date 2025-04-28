@@ -71,7 +71,7 @@ Once the user has saved the MAC Address and capacitive touch threshold value, fl
 
 ### Hardware - Enclosure
 
-
+<img src="https://github.com/user-attachments/assets/bb88337b-866e-4be9-89dd-9279ab106c00" width="600" />
 
 The 3D models for the enclosure can be found in ```Modeling/3D_models```. Use these to print out a copy of the enclosure to house the electronics in. We recommend printing the top shell of the enclosure in a solid material and the bottom part in translucent to allow the LED light to diffuse out.
 
@@ -93,7 +93,13 @@ Using these, it is possible to reconstruct the protoboard arrangement shown belo
 
 <img src="https://github.com/user-attachments/assets/8312087c-e96c-4603-b33b-90e838355cfa" width="600" />
 
+Note that the IMU was replaced by a capative sensor for a more natural human interaction, using the [Capacitive Sensor arduino library](https://docs.arduino.cc/libraries/capacitivesensor/):
+
 <img src="https://github.com/user-attachments/assets/5de029b1-a5ec-4dd4-ae9e-6868a2725343" width="600" />
+
+The main code in ```software/hotstone/src/main.cpp``` describes which pins the capacitive sensor should be soldered to. A 220k Ohm resistor was used for this sub-circuit (tested with an ESP8266):
+
+![IMG_9087](https://github.com/user-attachments/assets/16a029a0-b9c3-43cc-ba8d-eea6cc87670d)
 
 ## Future Updates
 
