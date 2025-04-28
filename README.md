@@ -11,8 +11,9 @@
     - [Setup](#setup)
     - [Libraries](#libraries-used)
     - [Running the App](#running-the-application)
-    - [Hardware-enclosure](#hardware-enclosure)
-    - [Hardware-circuit](#hardware-circuit)
+- [Physical Build](#physical-build)
+    - [Enclosure](#enclosure)
+    - [Circuit](#circuit)
 - [Future Updates](#future-updates)
 - [Further Questions](#Further-Questions)
 - [Developers](#developers)
@@ -71,7 +72,11 @@ Once the MAC addresses have been set, we can set the threshold values. With the 
 
 Once the user has saved the MAC Address and capacitive touch threshold value, flash the code to the microcontroller in PlatformIO.
 
-### Hardware - Enclosure
+## Physical build
+
+### Materials
+
+### Enclosure
 
 <img src="https://github.com/user-attachments/assets/bb88337b-866e-4be9-89dd-9279ab106c00" width="600" />
 
@@ -79,7 +84,7 @@ The 3D models for the enclosure can be found in ```Modeling/3D_models```. Use th
 
 You can adapt the 3D models to fit any protoboard size and configuration, but for the easiest solution, we recommend taking dimensions from the dummy protoboard in the 3D model files.
 
-### Hardware - Circuit
+### Circuit
 
 The circuit diagram for the device is shown below:
 
