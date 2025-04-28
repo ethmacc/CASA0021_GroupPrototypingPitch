@@ -21,7 +21,7 @@
 
 ## What is HotStone?
 
-![storyboard_color](https://github.com/user-attachments/assets/8ab4c42e-1e01-4050-8462-e442f34d2a18)
+<img src="https://github.com/user-attachments/assets/8ab4c42e-1e01-4050-8462-e442f34d2a18" width="600" />
 
 HotStone is a prototype device that allows two users to bond over a shared experience of warmth across the distance. It is primarily aimed at users who, for one reason or another, find themselves in a long-distance relationship / friendship with another person or family member. Utilizing Internet-of-Things (IoT) technology, it is possible to create an interaction where one user putting their hand on their device creates a warm sensation for the other person when they touch the other paired device and vice versa.
 
