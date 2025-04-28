@@ -108,21 +108,25 @@ As well as the schematic for the layout of the protoboard:
 
 ![thumbnail_image](https://github.com/user-attachments/assets/236896b1-2056-4afd-a0a5-91ffbce2017c)
 
-Using these, it is possible to reconstruct the protoboard arrangement shown below, that fits into the device compactly:
+Using these, it is possible to reconstruct the arrangement shown below, by soldering the heating pads, header pins for the Node MCU and the MOSFET transistor to the protoboard:
 
 <img src="https://github.com/user-attachments/assets/e201b6ef-1a8e-4f32-85f7-3a14473ebf89" width="600"/>
 
 <img src="https://github.com/user-attachments/assets/8312087c-e96c-4603-b33b-90e838355cfa" width="600" />
 
-Note that the IMU was replaced by a capative sensor for a more natural human interaction, using the [Capacitive Sensor arduino library](https://docs.arduino.cc/libraries/capacitivesensor/):
+Power is supplied to the device using the USB cable, stripped and connected to the relevant power in and ground pins of the Node MCU (the thick wire leading out to the right):
 
 <img src="https://github.com/user-attachments/assets/5de029b1-a5ec-4dd4-ae9e-6868a2725343" width="600" />
+
+The Neopixel strip is not soldered on but rather attached to a fixed position facing up and connected to the circuit via wire jacks and pin headers.
+
+Note that the IMU was replaced by a capative sensor for a more natural human interaction, using the [Capacitive Sensor arduino library](https://docs.arduino.cc/libraries/capacitivesensor/).
 
 The main code in ```software/hotstone/src/main.cpp``` describes which pins the capacitive sensor should be soldered to. A 220k Ohm resistor was used for this sub-circuit (tested with an ESP8266) and aluminium foil was used for the sesnor plate, but these can be adjusted to your liking:
 
 <img src="https://github.com/user-attachments/assets/16a029a0-b9c3-43cc-ba8d-eea6cc87670d" width="600" />
 
-More information on capacitive sensor circuits can be found on the web, such as [this Instructables link](https://www.instructables.com/How-To-Use-Touch-Sensors-With-Arduino/)
+More information on capacitive sensor circuits can be found on the web, such as [this Instructables link](https://www.instructables.com/How-To-Use-Touch-Sensors-With-Arduino/).
 
 ## Future Updates
 
