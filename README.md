@@ -12,6 +12,7 @@
     - [Libraries](#libraries-used)
     - [Running the App](#running-the-application)
 - [Physical Build](#physical-build)
+    - [Materials](#materials)
     - [Enclosure](#enclosure)
     - [Circuit](#circuit)
 - [Future Updates](#future-updates)
@@ -76,6 +77,19 @@ Once the user has saved the MAC Address and capacitive touch threshold value, fl
 
 ### Materials
 
+You will need the following materials for this build:
+- A 3D printer and filament
+- Protoboard or stripboard for the circuit prototype build
+- Wire
+- FQP30N06L MOSFET
+- 220K Ohm resistor
+- Aluminium foil
+- 8-LED Neopixel LED strip
+- USB male cable
+- Node MCU
+- Pin headers (male and female)
+- Heating pads, available on Amazon from multiple sources
+
 ### Enclosure
 
 <img src="https://github.com/user-attachments/assets/bb88337b-866e-4be9-89dd-9279ab106c00" width="600" />
@@ -104,9 +118,11 @@ Note that the IMU was replaced by a capative sensor for a more natural human int
 
 <img src="https://github.com/user-attachments/assets/5de029b1-a5ec-4dd4-ae9e-6868a2725343" width="600" />
 
-The main code in ```software/hotstone/src/main.cpp``` describes which pins the capacitive sensor should be soldered to. A 220k Ohm resistor was used for this sub-circuit (tested with an ESP8266):
+The main code in ```software/hotstone/src/main.cpp``` describes which pins the capacitive sensor should be soldered to. A 220k Ohm resistor was used for this sub-circuit (tested with an ESP8266) and aluminium foil was used for the sesnor plate, but these can be adjusted to your liking:
 
 <img src="https://github.com/user-attachments/assets/16a029a0-b9c3-43cc-ba8d-eea6cc87670d" width="600" />
+
+More information on capacitive sensor circuits can be found on the web, such as [this Instructables link](https://www.instructables.com/How-To-Use-Touch-Sensors-With-Arduino/)
 
 ## Future Updates
 
