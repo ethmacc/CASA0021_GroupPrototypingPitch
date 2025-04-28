@@ -69,6 +69,14 @@ Once the MAC addresses have been set, we can set the threshold values. With the 
 
 Once the user has saved the MAC Address and capacitive touch threshold value, flash the code to the microcontroller in PlatformIO.
 
+### Hardware
+
+<img src="https://github.com/user-attachments/assets/5de029b1-a5ec-4dd4-ae9e-6868a2725343" width="600" />
+
+The 3D models for the enclosure can be found in ```Modeling/3D_models```. Use these to print out a copy of the enclosure to house the electronics in. We recommend printing the top shell of the enclosure in a solid material and the bottom part in translucent to allow the LED light to diffuse out.
+
+You can adapt the 3D models to fit any protoboard size and configuration, but for the easiest solution, we recommend taking dimensions from the dummy protoboard in the 3D model files.
+
 ## Future Updates
 
 - Further study into material selection
